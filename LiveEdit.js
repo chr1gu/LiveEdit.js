@@ -54,16 +54,27 @@ var LiveEdit = function() {
 			str += '  LiveEdit.reg(function|object|value)\n';
 			str += '  LiveEdit.get(name)\n';
 			str += '  LiveEdit.set(name, value)\n';
+			str += '  LiveEdit.reset(name)\n';
 			str += '\n';
 			str += 'registered objects:\n';
 			for (i in scope.registeredObjects) {
-				str += ('  "'+i+'": '+(typeof scope.registeredObjects[i])+'\n');
+				str += ('  "'+i+'": '+(typeof scope.registeredObjects[i].getValue())+'\n');
 			}
 			str += '\n';
 			return str;
 		},
 
-		getRandomName: function(length){
+		listObjects: function() {
+			var i, str;
+			str = '[LiveEdit] Registered objects:\n';
+			for (i in scope.registeredObjects) {
+				str += ('"'+i+'": '+(typeof scope.registeredObjects[i].getValue())+'\n');
+			}
+			console.info(str);
+			return str;
+		},
+
+		getRandomName: function(length) {
 			var chars, str, i;
 			if (!length) length = 12;
 			chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
@@ -96,42 +107,46 @@ var LiveEdit = function() {
 		},
 
 		reg: function(name, value) {
+			// do some basic validation
+			if (typeof value === 'undefined') {
+				if (typeof name === 'undefined') {
+					console.error('[LiveEdit] reg-error: No arguments!');
+					return false;
+				} else {
+					console.warn('[LiveEdit] reg-warn: The first argument must be a valid name to identify your registered object');
+					value = name;
+					name = scope.getRandomName();
+				}
+			}
+
 			// shorten output value for better readability
 			var shortVal = value.toString();
-			// remove linkebreaks
 			shortVal = shortVal.replace(/(\r\n|\n|\r)/gm," ");
-			//Replace all double white spaces with single spaces
 			shortVal = shortVal.replace(/\s+/g," ");
 			if (shortVal.length>scope.logValueMaxLength) {
 				shortVal = shortVal.substring(0,scope.logValueMaxLength)+'...';
 			}
-			/*var method, name;
-			 if (typeof arguments[0] === 'function') {
-			 method = arguments[0];
-			 } else if (typeof arguments[0] === 'string') {
-			 name = arguments[0];
-			 }
-			 if (typeof arguments[1] === 'function') {
-			 method = arguments[1];
-			 }
-			 if (!name && method) {
-			 name = scope.getRandomName();
-			 }
-			 if (!method) {
-			 // method not specified return lambda
-			 console.error('Couldn\'t register method!', 'check args:', arguments);
-			 return function(){};
-			 }*/
+
+			// check if there is already an object with the same name
+			if (scope.get(name)) {
+				console.warn('[LiveEdit] There is already an object registered with the name "'+name+'". A random name has been generated!' );
+				name = name + '-' + scope.getRandomName(5);
+			}
+
 			if (scope.verbose) {
 				console.info('[LiveEdit] Object "'+name+'" registered:', '=>', shortVal);
 			}
-			// todo: check that method doesn't already exist else use different name
+
+			// "register" object
 			scope.registeredObjects[name] = registeredObject(value);
 
-			return function(){
-				// todo: check that this does not only work with functions!
-				scope.get(name).call(this);
+			// todo: check that this works with objects that have nested functions
+			if (typeof value === 'function') {
+				return function(){
+					scope.get(name).getValue().call(this);
+				}
 			}
+			return scope.get(name).getValue();
 		}
 	};
 }();
