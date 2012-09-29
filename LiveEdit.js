@@ -1,10 +1,25 @@
+// Global function/object that leaks into global scope by purpose ;)
+// Please use it for debugging only!
 var LiveEdit = function() {
+	var scope;
+	// mock console for really old browsers
+	if (typeof console === 'undefined') {
+		console = function(){
+			return {
+				error: function(){
+					alert(arguments[0]);
+				},
+				warn: function(){
+					alert(arguments[0]);
+				},
+				info: function(){ },
+				log: function(){ }
+			}
+		}();
+	}
 
-	var scope, logger;
-	// output logging
-	logger = typeof console !== 'undefined' ? console.log : alert;
-	//
-	logger('LiveEdit initiated. Type "LiveEdit" into your console to get further information');
+	console.info('LiveEdit initiated. Type "LiveEdit" into your console to get further information');
+
 	// public methods/properties
 	// todo: rename method stuff
 	scope = {
@@ -76,6 +91,6 @@ var LiveEdit = function() {
 				scope.get(name)();
 			}
 		}
-	}
+	};
 	return scope;
-	}();
+}();
