@@ -87,18 +87,19 @@ var LiveEdit = function() {
 
 		// returns a registeredObject
 		get: function(name) {
-			// todo check that it exists
-			var obj = scope.registeredObjects[name];
-			if (!obj) {
-				console.error('[LiveEdit] Object "'+name+'" not found!');
-				scope.listObjects();
-			}
-			return obj;
+			return scope.registeredObjects[name];
 		},
 
 		// sets back the initial value of the registered object
 		reset: function(name) {
-			return scope.get(name).reset();
+			var obj = scope.get(name);
+			if (obj) {
+				obj.reset();
+			} else {
+				console.error('[LiveEdit] Object "'+name+'" not found!');
+				scope.listObjects();
+			}
+			return obj;
 		},
 
 		// overwrite an existing registeredObject
@@ -109,6 +110,9 @@ var LiveEdit = function() {
 				if (scope.verbose) {
 					console.info('[LiveEdit] Object "'+name+'" modified.', 'New value:', value);
 				}
+			} else {
+				console.error('[LiveEdit] Object "'+name+'" not found!');
+				scope.listObjects();
 			}
 			return obj;
 		},
