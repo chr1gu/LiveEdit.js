@@ -154,7 +154,7 @@ var LiveEdit = function() {
 			// todo: check that this works with objects that have nested functions
 			if (typeof value === 'function') {
 				return function(){
-					scope.get(name).getValue().call(this);
+					scope.get(name).getValue().apply(this, arguments);
 				}
 			}
 			return scope.get(name).getValue();
