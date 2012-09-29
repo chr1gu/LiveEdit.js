@@ -66,7 +66,7 @@ var LiveEdit = function() {
 
 		listObjects: function() {
 			var i, str;
-			str = '[LiveEdit] Registered objects:\n';
+			str = '[LiveEdit] Current registered objects:\n';
 			for (i in scope.registeredObjects) {
 				str += ('"'+i+'": '+(typeof scope.registeredObjects[i].getValue())+'\n');
 			}
@@ -88,7 +88,12 @@ var LiveEdit = function() {
 		// returns a registeredObject
 		get: function(name) {
 			// todo check that it exists
-			return scope.registeredObjects[name];
+			var obj = scope.registeredObjects[name];
+			if (!obj) {
+				console.error('[LiveEdit] Object "'+name+'" not found!');
+				scope.listObjects();
+			}
+			return obj;
 		},
 
 		// sets back the initial value of the registered object
@@ -99,9 +104,11 @@ var LiveEdit = function() {
 		// overwrite an existing registeredObject
 		set: function(name, value) {
 			var obj = scope.get(name);
-			obj.setValue(value);
-			if (scope.verbose) {
-				console.info('[LiveEdit] Object "'+name+'" modified.', 'New value:', value);
+			if (obj) {
+				obj.setValue(value);
+				if (scope.verbose) {
+					console.info('[LiveEdit] Object "'+name+'" modified.', 'New value:', value);
+				}
 			}
 			return obj;
 		},
