@@ -2,7 +2,9 @@
 // thanks http://trephine.org/t/index.php?title=JavaScript_call_and_apply for explaining me how the scope works AGAIN :D
 // Please use it for debugging only!
 var LiveEdit = function() {
-	var scope;
+
+	var scope, registeredObject;
+
 	// mock console for really old browsers
 	if (typeof console === 'undefined') {
 		console = function(){
@@ -19,17 +21,33 @@ var LiveEdit = function() {
 		}();
 	}
 
+	// defines registeredObjects
+	registeredObject = function(value){
+		var initialValue = value,
+			currentValue = value;
+		return {
+			reset: function() {
+				currentValue = initialValue;
+				return this;
+			},
+			setValue: function(value) {
+				currentValue = value;
+				return this;
+			},
+			getValue: function() {
+				return currentValue;
+			}
+		}
+	};
+
 	console.info('LiveEdit initiated. Type "LiveEdit" into your console to get further information');
 
 	// public methods/properties
-	// todo: rename method stuff
-	scope = {
-		methods: [],
+	return scope = {
+		registeredObjects: [],
 		verbose: true,
 		logValueMaxLength: 40,
-		swapMethod: function(oldMethod, newMethod) {
 
-		},
 		toString: function() {
 			var i, str = '=== LiveEdit usage ===\n';
 			str += 'usefull methods:\n';
@@ -38,12 +56,13 @@ var LiveEdit = function() {
 			str += '  LiveEdit.set(name, value)\n';
 			str += '\n';
 			str += 'registered objects:\n';
-			for (i in scope.methods) {
-				str += ('  "'+i+'": '+(typeof scope.methods[i])+'\n');
+			for (i in scope.registeredObjects) {
+				str += ('  "'+i+'": '+(typeof scope.registeredObjects[i])+'\n');
 			}
 			str += '\n';
 			return str;
 		},
+
 		getRandomName: function(length){
 			var chars, str, i;
 			if (!length) length = 12;
@@ -54,17 +73,28 @@ var LiveEdit = function() {
 			}
 			return str;
 		},
+
+		// returns a registeredObject
 		get: function(name) {
 			// todo check that it exists
-			return scope.methods[name];
+			return scope.registeredObjects[name];
 		},
+
+		// sets back the initial value of the registered object
+		reset: function(name) {
+			return scope.get(name).reset();
+		},
+
+		// overwrite an existing registeredObject
 		set: function(name, value) {
-			scope.methods[name] = value;
+			var obj = scope.get(name);
+			obj.setValue(value);
 			if (scope.verbose) {
-				console.info('[LiveEdit] Method "'+name+'" modified.', 'New value:', value);
+				console.info('[LiveEdit] Object "'+name+'" modified.', 'New value:', value);
 			}
-			return scope.methods[name];
+			return obj;
 		},
+
 		reg: function(name, value) {
 			// shorten output value for better readability
 			var shortVal = value.toString();
@@ -93,15 +123,15 @@ var LiveEdit = function() {
 			 return function(){};
 			 }*/
 			if (scope.verbose) {
-				console.info('[LiveEdit] Method "'+name+'" registered:', '=>', shortVal);
+				console.info('[LiveEdit] Object "'+name+'" registered:', '=>', shortVal);
 			}
 			// todo: check that method doesn't already exist else use different name
-			scope.methods[name] = value;
+			scope.registeredObjects[name] = registeredObject(value);
+
 			return function(){
 				// todo: check that this does not only work with functions!
 				scope.get(name).call(this);
 			}
 		}
 	};
-	return scope;
 }();
