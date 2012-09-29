@@ -59,7 +59,7 @@ var LiveEdit = function() {
 		set: function(name, value) {
 			scope.methods[name] = value;
 			if (scope.verbose) {
-				logger('[LiveEdit] Method "'+name+'" modified.', 'New value:', value);
+				console.info('[LiveEdit] Method "'+name+'" modified.', 'New value:', value);
 			}
 			return scope.methods[name];
 		},
@@ -78,11 +78,11 @@ var LiveEdit = function() {
 			}
 			if (!method) {
 				// method not specified return lambda
-				logger('Couldn\'t register method!', 'check args:', arguments);
+				console.error('Couldn\'t register method!', 'check args:', arguments);
 				return function(){};
 			}
 			if (scope.verbose) {
-				logger('[LiveEdit] Method "'+name+'" registered:', '=>', method.toString());
+				console.info('[LiveEdit] Method "'+name+'" registered:', '=>', method.toString());
 			}
 			// todo: check that method doesn't already exist else use different name
 			scope.methods[name] = method;
